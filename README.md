@@ -1,9 +1,11 @@
 This is the repository for DGMD E-28 2025 spring term. 
 
-Assignment 2 Tic Tac Toe part 1 (Feb. 7 2025):
+### Assignment 2 Tic Tac Toe part 1 (Feb. 7 2025):
 Students are required to use HTML and CSS to create a 3 x 3 grid of squares.
-Here is the [public URL](https://johnnybean181.github.io/assignments_dgmd_e28/hw2/ttt1.html) for this project.
 
-Assignment 1 Introduction (Jan. 31 2025):
+[URL](https://johnnybean181.github.io/assignments_dgmd_e28/hw2/ttt1.html) for this assignment.
+
+### Assignment 1 Introduction (Jan. 31 2025):
 Students are required to use tags such as lists, images, URLs, and more.
-Here is the [public URL](https://johnnybean181.github.io/assignments_dgmd_e28/) for this project.
+
+[URL](https://johnnybean181.github.io/assignments_dgmd_e28/) for this assignment.
