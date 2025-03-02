@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="description" content="This webpage is the second assignment for DGMD E-28. In this assignment, students are required to use HTML and CSS to create a 3 x 3 grid of squares." />
+    <title>Assignment 2</title>
+    <style>
+        body, html {padding: 0px 50px; font-size: 30px}
+        .mybox {
+            /* border: 1px solid ;*/
+            padding: 20px;
+            width: 340px;
+            position: relative;
+            margin: 2px auto;
+        }
+        .square {
+            border: 1px solid ;
+            margin: 5px;
+            width: 100px;
+            height: 100px;
+            line-height: 100px;
+            text-align: center;
+        }
+        .square:hover {
+            background-color: crimson;
+        }
+
+        /* For the second and third square in every row,
+           we assign absolute position to them. */
+        .mybox div:nth-child(2){
+            position: absolute;
+            top: 20px;
+            left: 127px;
+        }
+        .mybox div:nth-child(3){
+            position: absolute;
+            top: 20px;
+            left: 234px;
+        }
+        
+        .mybox div:nth-child(5){
+            position: absolute;
+            top: 127px;
+            left: 127px;
+        }
+        .mybox div:nth-child(6){
+            position: absolute;
+            top: 127px;
+            left: 234px;
+        }
+
+        .mybox div:nth-child(8){
+            position: absolute;
+            top: 234px;
+            left: 127px;
+        }
+        .mybox div:nth-child(9){
+            position: absolute;
+            top: 234px;
+            left: 234px;
+        }
+
+        #main_nav li {
+            list-style-type: none;
+            display:inline-block;
+            width: 150px;
+            text-align:center;
+        }
+        #main_nav li a {
+            font-size: 20px;
+            text-decoration: none;
+            color: #B4053A;
+        }
+        #main_nav li a:hover {background-color: #a7a7a7}
+    </style>
+</head>
+<body>
+    <!-- Title -->
+    <h1>Homework 2: Tic Tac Toe (Ver. 1)</h1>
+    <ul id ="main_nav">
+        <li><a href="ttt1.html">ver. 1</a></li>
+        <li><a href="ttt2.html">ver. 2</a></li>
+        <li><a href="ttt3.html">ver. 3</a></li>
+        <li><a href="ttt4.html">ver. 4</a></li>
+        <li><a href="ttt5.html">ver. 5</a></li>
+    </ul>
+    <hr>
+
+    <!-- Squares -->
+    <div class="mybox">
+        <div class="square">X</div>
+        <!-- Use &nbsp; to replace blank making life easier. -->
+        <div class="square">&nbsp;</div>
+        <div class="square">X</div>
+        <div class="square">&nbsp;</div>
+        <div class="square">O</div>
+        <div class="square">&nbsp;</div>
+        <div class="square">&nbsp;</div>
+        <div class="square">&nbsp;</div>
+        <div class="square">&nbsp;</div>
+    </div>
+
+</body>
+</html>
