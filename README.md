@@ -1,5 +1,10 @@
 This is the repository for DGMD E-28 2025 spring term. 
 
+### Assignment 4 Tic Tac Toe part 3 (Mar. 2 2025):
+Students are required to add more features to make the Tic-Tac-Toe game work on the page.
+
+[URL](https://johnnybean181.github.io/assignments_dgmd_e28/hw4/ttt5.html) for this assignment.
+
 ### Assignment 3 Tic Tac Toe part 2 (Feb. 16 2025):
 Students are required to use HTML and CSS to add more features to the squares.
 
