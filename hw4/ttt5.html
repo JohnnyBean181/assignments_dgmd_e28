@@ -235,7 +235,11 @@
                 const winner = document.getElementById('winner');
                 winner.innerHTML = '?';
 
+                // Allow playing on the board.
                 playing = true;
+                // randomly choose the first player, either 'X' or 'O'. 
+                symbol = getSymbol();
+                refreshWhoseTurn(symbol);
             }
 
             /* Part 3.6 Helper function
