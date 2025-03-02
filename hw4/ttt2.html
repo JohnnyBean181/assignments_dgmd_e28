@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="description" content="This webpage is the second assignment for DGMD E-28. In this assignment, students are required to use HTML and CSS to create a 3 x 3 grid of squares." />
+    <title>Assignment 2</title>
+    <style>
+        body, html {padding: 0px 50px; font-size: 30px}
+        .mybox {
+            /* border: 1px solid ; */
+            padding: 20px;
+            width: 340px;
+            position: relative;
+            margin: 2px auto;
+        }
+        .square {
+            border: 1px solid;
+            margin: 5px;
+            width: 100px;
+            height: 100px;
+            line-height: 100px;
+            text-align: center;
+        }
+        .square:hover {
+            background-color: crimson;
+        }
+
+        /* Since tag:script is regarded as a child,
+           we start from the 3rd. child this time. */
+        .mybox div:nth-child(3){
+            position: absolute;
+            top: 20px;
+            left: 127px;
+        }
+        .mybox div:nth-child(4){
+            position: absolute;
+            top: 20px;
+            left: 234px;
+        }
+        
+        .mybox div:nth-child(6){
+            position: absolute;
+            top: 127px;
+            left: 127px;
+        }
+        .mybox div:nth-child(7){
+            position: absolute;
+            top: 127px;
+            left: 234px;
+        }
+
+        .mybox div:nth-child(9){
+            position: absolute;
+            top: 234px;
+            left: 127px;
+        }
+        .mybox div:nth-child(10){
+            position: absolute;
+            top: 234px;
+            left: 234px;
+        }
+
+        .status, .outcome {
+            border: 1px solid ;
+            padding: 5px;
+            width: 300px;
+            position: relative;
+            margin: 2px auto;
+            text-align: center;
+        }
+
+        #main_nav li {
+            list-style-type: none;
+            display:inline-block;
+            width: 150px;
+            text-align:center;
+        }
+        #main_nav li a {
+            font-size: 20px;
+            text-decoration: none;
+            color: #B4053A;
+        }
+        #main_nav li a:hover {background-color: #a7a7a7}
+    </style>
+</head>
+<body>
+    <!-- Title -->
+    <h1>Homework 2: Tic Tac Toe (Ver. 2)</h1>
+    <ul id ="main_nav">
+        <li><a href="ttt1.html">ver. 1</a></li>
+        <li><a href="ttt2.html">ver. 2</a></li>
+        <li><a href="ttt3.html">ver. 3</a></li>
+        <li><a href="ttt4.html">ver. 4</a></li>
+        <li><a href="ttt5.html">ver. 5</a></li>
+    </ul>
+    <hr>
+
+    <!-- Squares -->
+    <div class="mybox">
+        <script>
+            const NUM_SQUARES = 9;
+            for (i=0; i<NUM_SQUARES; i++)
+            {
+                id = "sq"+i;
+                document.write( "<div class='square' id='" + id + "'></div>" );
+            }
+        </script>
+    </div>
+
+    <!-- Status: indicate whether it is X’s turn or O’s turn -->
+    <div class="status">
+        Turn for : <span id="turn">O</span>
+    </div>
+
+    <!-- Outcome: display a win condition -->
+    <div class="outcome">
+        Winner is : <span id="winner"></span>
+    </div>
+
+    <!-- Place 2 X's and one O on the board -->
+    <script>
+        // Use &nbsp; to replace blank making life easier.
+        const squares = document.querySelectorAll('.square');
+        // console.log(squares)
+        squares.forEach(square => {
+            square.innerHTML = '&nbsp;';
+        });
+
+        // Place 2 X's and one O on the board, as I did in 'ttt1.html'.
+        document.getElementById("sq0").innerHTML = "X";
+        document.getElementById("sq2").innerHTML = "X";
+        document.getElementById("sq4").innerHTML = "O";
+    </script>
+</body>
+</html>
