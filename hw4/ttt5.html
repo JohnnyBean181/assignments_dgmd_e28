@@ -146,14 +146,6 @@
                  * "start button".                                  *
                  ****************************************************/
                 addEventHandler();
-                
-                /*****************************************************
-                 * Randomly pick and display a symbol before the     *
-                 * start of a game.                                  *
-                 *****************************************************/
-                symbol = getSymbol();
-                playing = true;
-                refreshWhoseTurn(symbol);
             } 
             
             /* Part 3.1 Helper function
@@ -294,7 +286,7 @@
 
             /* Part 3.11 Helper function
             *  Determine if there is a win or stalemate,  
-            *  and return win(boolean) and stalement(boolean) in a list. */
+            *  and return win(boolean) and stalement(boolean) in the end. */
             function identifyWinStalemate()
             {
                 // Create a new array called moves with the current 'X' or 'O' value
