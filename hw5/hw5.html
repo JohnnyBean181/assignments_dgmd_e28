@@ -1,0 +1,233 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="This is the 5th. assignment for DGMD E-28. In this assignment, students are required to create a simple order system for Joe’s Hotdogs." />
+    <title>Associative Arrays</title>
+    <style type="text/css">
+        body,html {font-size: 26px}
+        div[id="menu"]{
+            margin: 2px auto;
+            width: 240px;
+            background-color:gold;
+            border: 2px solid;
+            border-color: darkgoldenrod;
+        }
+        h2, #cart, p { 
+            text-align:center; 
+            margin: 2px auto;
+        }
+        p {
+            color:darkgrey
+        }
+        div[id="shopping_list"]{
+            width: 240px;
+            min-height: 100px;
+            border: 2px solid black; 
+            margin: 2px auto;
+            text-align:left;
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu -->
+    <div id="menu">
+        <h2>Menu</h2>
+        <div id="list">blank</div>
+    </div>
+    <hr />
+    <!-- Cart -->
+    <div id="cart">
+        <p>How to play : Enter an item name in the textfield, </p>
+        <p>and then add it into the box below by pressing the button.</p>
+
+        <span>
+            <label>Item Name:</label>
+            <input type="text" name="name" id="itemname">
+            <button type="button" id="add_btn" name="action" value="add">Add to Cart</button>
+        </span>
+        <div id="shopping_list">empty</div>
+        <span>
+            <button type="button" id="chk_btn" anme="action" value="chechout">Checkout</button>
+        </span>
+    </div>
+
+    <script>
+        // Part 1. Claim variables.
+        // "menu" is an associative array representing items and prices.
+        var menu = {
+            hotdogs: 4,
+            fries: 3.5,
+            soda: 1.5,
+            sauerkraut: 1
+        }
+        // "quantities" is another associative array  
+        // which records quantities in the cart.
+        var quantities={};
+
+        // Part 2. Perform a series of actions after webpage is loaded.
+        window.onload= function() 
+        {
+            // Display a menu of items on the page.
+            printArray(menu);
+
+            // Initialize "quantities", the keys are the menu items
+            // and the values are set to '0' as default.
+            initArray(menu, quantities);
+
+            // The box, which is "cart area", is initialized with string "empty",
+            // indicating there is no item in the cart.
+            refreshBox();
+
+            // Add event listener to "add_btn".
+            initAddButton();
+
+            // Add event listener to "chk_btn".
+            initCheckoutButton();
+        }
+
+        // Part 3.1 Helper function
+        // Display items in the associative array on the page.
+        function printArray(items)
+        {
+            // First, save the code into "content".
+            let content = "<ul>";
+            for (key in items)
+            {
+                content += "<li>" + key + " : $" + items[key] + "</li>";
+            }
+            content += "</ul>";
+
+            // Next, assign the "content" to innerHTML.
+            document.getElementById("list").innerHTML = content;
+        }
+
+        // Part 3.2 Helper function
+        // Initialize target array, the keys come from the source array
+        // and the values will be set to '0' as default.
+        function initArray(source, target)
+        {
+            Object.keys(source).forEach(key=>{
+                target[key] = 0;
+            });
+        }
+
+        // Part 3.3 Helper function
+        // Add event listener to "add_btn".
+        // By clicking the button, we add the input item into the "cart area",
+        // if it is one item in the menu. Thereafter, the box, also known as 
+        // "cart area", will be refreshed so that we can see the change. 
+        function initAddButton()
+        {
+            const add_btn = document.getElementById("add_btn");
+            add_btn.addEventListener('click', function () {
+                // Pick up item name from text_field,
+                // and transform it to lowercase.
+                const item_name = document.getElementById('itemname').value.toLowerCase();
+                
+                updateArray(quantities, item_name);
+                refreshBox(isArrayEmpty(quantities)?"empty":getArrayText(quantities));
+                
+                // console output is kept so it's easier to verifiy the change.
+                console.log(quantities);
+            });
+        }
+
+        // Part 3.4 Helper function
+        // Iterate through each key in the array.
+        // If the item name is identical to anyone of the keys,
+        // add 1 to its value.
+        function updateArray(my_array, item)
+        {
+            Object.keys(my_array).forEach(key=>{
+                if (key == item) {
+                    my_array[key] += 1;
+                }
+            });
+        }
+
+        // Part 3.5 Helper function
+        // Refresh the box, also known as "cart area", with string "content".
+        function refreshBox(content="empty")
+        {
+            const box = document.getElementById("shopping_list");
+            box.innerHTML = content;
+        }
+
+        // Part 3.6 Helper function
+        // Check if the customer has added any item into the cart.
+        // If any item has been added to the cart, return false.
+        // Otherwise, return true.
+        function isArrayEmpty(my_array)
+        {
+            for (key in my_array)
+            {
+                if (my_array[key] != 0) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Part 3.7 Helper function
+        // Return a string containing all items with quantity 
+        // greater than 0.
+        function getArrayText(my_array)
+        {
+            let content = "";
+            Object.keys(my_array).forEach(key=>{
+                if (my_array[key] != 0) {
+                    content += key + " : " + my_array[key] + "<br>";
+                }
+            });
+            return content;
+        }
+
+        // Part 3.8 Helper function
+        // Add event listener to "chk_btn".
+        // By clicking the button, a popup will display the quantity
+        // and total cost for each item purchased.
+        // When the user clicks ok to dismiss the popup,
+        // the cart will be cleared and all quantities returned to 0.
+        function initCheckoutButton()
+        {
+            const chk_btn = document.getElementById("chk_btn");
+            chk_btn.addEventListener('click', function () {
+                // Use alert window to display information.
+                alert(getTallyText(quantities, menu));
+                // All quantities are returned to 0.
+                initArray(menu, quantities);
+                refreshBox();
+            });
+        }
+
+        // Part 3.9 Helper function
+        // Return a string containing the quantity and total cost for
+        // each item purchased, as well as the total for the order.
+        function getTallyText(quant_array, price_array)
+        {
+            let content = "";
+            let totalCost = 0;
+            Object.keys(quant_array).forEach(key=>{
+                if (quant_array[key] != 0) {
+                    cost = getCost(quant_array[key], price_array[key]);
+                    content += key + " : num " + quant_array[key]
+                        + " , cost $" + cost + "\n";
+                    totalCost += cost;
+                }
+            });
+            content += "total cost : $" + totalCost;
+            return content;
+        }
+
+        // Part 3.10 Helper function
+        // Convert variable from string to number, and then 
+        // return their product.
+        function getCost(num, price)
+        {
+            return parseInt(num)*parseFloat(price);
+        }
+    </script>
+</body>
+</html>
