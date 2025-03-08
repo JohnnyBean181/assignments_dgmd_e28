@@ -1,5 +1,10 @@
 This is the repository for DGMD E-28 2025 spring term. 
 
+### Assignment 5 Joe's Hotdogs (Mar. 8 2025):
+Students are required to create a simple order system for Joe's Hotdogs.
+
+[URL](https://johnnybean181.github.io/assignments_dgmd_e28/hw5/hw5.html) for this assignment.
+
 ### Assignment 4 Tic Tac Toe part 3 (Mar. 2 2025):
 Students are required to add more features to make the Tic-Tac-Toe game work on the page.
 
