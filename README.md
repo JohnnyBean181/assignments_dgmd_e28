@@ -1,5 +1,10 @@
 This is the repository for DGMD E-28 2025 spring term. 
 
+### Assignment 6 Wordle (Mar. 19 2025):
+Students are required to use Javascript objects plus an API to create a one-page game app.
+
+[URL](https://johnnybean181.github.io/assignments_dgmd_e28/hw6/wordle.html) for this assignment.
+
 ### Assignment 5 Joe's Hotdogs (Mar. 8 2025):
 Students are required to create a simple order system for Joe's Hotdogs.
 
