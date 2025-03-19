@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="description" content="This webpage is the 6th. assignment for DGMD E-28. In this assignment, students are required to use Javascript objects plus an API to create a one-page game app." />
+    <title>Assignment 6</title>
+    <style>
+        body, html {padding: 0px; font-size: 30px}
+        .mybox { /* container for squares */
+            padding: 20px;
+            display: grid;
+            width: 360px;
+            grid-template-columns: repeat(5, 65px);
+            grid-template-rows: repeat(6, 65px);
+            grid-gap: 5px;
+            position: relative;
+            margin: 2px auto;
+        }
+        .square {
+            border: 1px solid;
+            margin: 5px;
+            width: 60px;
+            height: 60px;
+            line-height: 60px;
+            text-align: center;
+        }
+        .keyboard { /* container for keys */
+            width: 400px;
+            display: grid;
+            grid-template-columns: repeat(7, 50px);
+            grid-template-rows: repeat(4, 50px);
+            grid-gap: 5px;
+            position: relative;
+            margin: 2px auto;
+        }
+        .key {
+            border: 1px solid;
+            margin: 5px;
+            width: 46px;
+            height: 46px;
+            line-height: 46px;
+            text-align: center;
+        }
+        .square.correct, .key.correct {
+            background-color:lightgreen;
+        }
+        .square.misplace, .key.misplace {
+            background-color:rgb(240, 195, 62);
+        }
+        .square.wrong, .key.wrong {
+            background-color:lightgrey;
+        }
+        #start_game:hover, #debug_mode:hover {
+            background-color: crimson;
+        }
+        #start_game, #debug_mode { /* two buttons */
+            width: 200px;
+            border: 1px solid ;
+            padding: 5px;
+            position: relative;
+            margin: 2px auto;
+            text-align: center;
+        }
+        h2{
+            margin: 0px;
+        }
+        .wrapper {
+            display: flex;  
+            flex-flow: row wrap;
+            font-weight: bold;
+            text-align: center; 
+        }
+        .wrapper > * {
+            padding: 3px;
+            flex: 1 100%;
+        }        
+        @media all and (min-width: 600px) {
+            .aside { flex: 1 0 0; }
+            .keyboard { 
+                width: 500px;
+                grid-template-columns: repeat(9, 50px);
+                grid-template-rows: repeat(3, 50px);
+            }
+
+        }
+        @media all and (min-width: 700px) {
+            .main    { flex: 2 0px; }
+            .main    { order: 1; }
+            .aside-1 { order: 2; } 
+            .footer  { order: 3; }
+            .mybox {
+                margin: 2px 20px 2px auto;
+            }
+        }
+        #key_word {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<!-- Flexbox -->
+<div class="wrapper">
+    <!-- Title -->
+    <header class="header">
+        <h2>Homework 6: Wordle</h2>
+    </header>
+
+    <!-- Squares : Place to type letters -->
+    <div class="main">
+        <div class="mybox">
+            <script>
+                const NUM_SQUARES = 30;
+                for (i=0; i<NUM_SQUARES; i++)
+                {
+                    id = "sq"+i;
+                    document.write( "<div class='square' id='" + id + "'></div>" );
+                }
+            </script>
+        </div>
+    </div>
+
+    <!-- Sidebar : Place to display the 'win' and 'lose' status, along with two buttons
+                   to start a new game and toggle debug mode on or off. -->
+    <aside class="aside aside-1">
+        <div>
+            Lives left &nbsp;
+            <span id="life">
+                6
+            </span>            
+        </div>
+        <div>
+            Win &nbsp;
+            <span id="win_times">
+                0
+            </span>
+            &nbsp; Lose &nbsp;
+            <span id="lose_times">
+                0
+            </span>
+        </div>
+        <hr>
+
+        <!-- start a new game -->
+        <div id="start_game">
+            New Game
+        </div>
+        <!-- toggle debug mode on or off -->
+        <div id="debug_mode">
+            Debug Mode
+        </div>
+        <div id="key_word">
+            Fetching...
+        </div>
+    </aside>
+
+    <!-- keyboard : Used to indicate which key has been used before. -->
+    <footer class="footer">
+        <div class="keyboard">
+            <script>
+                const NUM_KEYS = 26;
+                for (i=0; i<NUM_KEYS; i++)
+                {
+                    id = "key"+i;
+                    document.write( "<div class='key' id='" + id + "'></div>" );
+                }
+            </script>
+        </div>
+    </footer>
+
+    <script>
+        // Part 1. Declare global variables.
+        // 'playing' is a boolean initialized as true. It will be set to false 
+        // when either a win or a loss is determined.
+        // 'word' is an instance of a class used to verify the player's input,
+        // and it is re-initialized before each game.
+        var playing, word;
+        // 'win_times' and 'lose_times' are counters that track the number of wins 
+        // and losses, respectively.
+        // Each game starts with 6 lives, and incorrect guess reduces the lives by 1.
+        var win_times = 0, lose_times = 0, life = 6;
+
+        // Part 2. Definition of the 'Word' object.
+        class Word {
+            constructor()
+            {
+                // 'answer' stores a 5-letter word fectched from a website via an
+                // API. It is presented as an array that can hold up to 5 letters.
+                this.answer = false; 
+                // 'cur_word' stores the letters that players input each time.
+                // It is an array that can hold up to 5 letters at a time.
+                this.cur_word = [];
+                // 'history_words' stores all the words attempted by the players. 
+                this.history_words = [];
+                // 'keyboard' stores all the letters attempted by the players.
+                // It is presented as an Associative Array so JavaScript knows 
+                // how to render the "keyboard". 
+                // For example: { "a": "correct", "b": "wrong" }.
+                this.keyboard = [];
+
+                // Initialize the 'answer' variable.
+                this.getWord();
+            }
+            // "getWord" : Fetch a 5-letter word from a website using an API.
+            async getWord()
+            {
+                // This URL returns a list of commonly used 5-letter words,
+                // from which we randomly select one each time.
+                const url = 'https://api.datamuse.com/words?sp=?????';
+                const request = new Request(url);
+                try {
+                    const response = await fetch(request);
+                    const words = await response.json();
+                    if (response.status == 200) {
+                        // Save the retrieved word.
+                        let new_word = chooseWord(words);
+                        this.setAnswer(new_word);
+                        // Display the word on the webpage.
+                        printWord(new_word);
+                    } else {
+                        console.log('Server Error', words);
+                    }
+                } catch(error) {
+                    console.log('Fetch Error', error);
+                }
+            }
+            // "setAnswer" : Update the 'answer' variable.
+            setAnswer(word)
+            {
+                this.answer = word.split("");
+            }
+            // "getAnswer" : Retrieve the 'answer' variable.
+            getAnswer()
+            {
+                return this.answer.join("");
+            }
+            // "isWordFetched" : Since the 'answer' is fetched from a website, we 
+            // need a function to verify if it has been successfully retrieved to 
+            // avoid comparing the player's input with an invalid value.
+            isWordFetched()
+            {
+                return this.answer?true:false;
+            }
+            // "getCurWordLen" : Return how many letters have been input.
+            getCurWordLen()
+            {
+                return this.cur_word.length;
+            }
+            // "pushChar" : Insert a new letter to the end of Array 'cur_word'.
+            pushChar(char)
+            {
+                this.cur_word.push(char);
+            }
+            // "popChar" : Delete the last letter from Array 'cur_word'.
+            popChar()
+            {
+                this.cur_word.pop();
+            }
+            // "isWord" : Verify whether the input word is valid or not.
+            async isWord()
+            {
+                // This URL returns a list of explanations for a valid word
+                // and responds with a 404 error if the word is not valid.
+                const test_word = this.cur_word.join("");
+                const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${test_word}`;
+                const request = new Request(url);
+                try {
+                    const response = await fetch(request);
+                    const words = await response.json();
+                    if (response.status == 200) {
+                        return true;
+                    } else if (response.status == 404) {
+                        console.log('Word not found.');render
+                        console.log('Server Error.');
+                        return false;
+                    }
+                } catch(error) {
+                    console.log('Fetch Error.');
+                    return false;
+                }
+            }
+            // "saveWord" : Save the input word to the history words list. 
+            saveWord()
+            {
+                this.history_words.push(this.cur_word);
+                this.cur_word = [];
+            }
+            // "getCorrectText" :
+            // 1. Returns an Array so JavaScript knows how to render the "squares".
+            // For example: For the input ['t', 'i', 't', 'l', 'e'], this func-
+            // tion returns ["correct", "wrong", "wrong", "wrong", "misplace"].
+            //  - "correct" means the letter exists in the answer and it's in 
+            //    the correct location.
+            //  - "misplace" means the letter exists in the answer but it's in 
+            //    the wrong location.
+            // 2. Update the Associative Array 'keyboard', this array is used to 
+            // help rendering the "keyboard". An example has been provided in the
+            // definition part.
+            getCorrectText()
+            {
+                let result = [];
+                let missed_chars = [];
+                this.answer.forEach((aim_char,i) => {
+                    const input_char = this.cur_word[i];
+                    if (aim_char == input_char) {
+                        result.push('correct'); // 1
+                        this.keyboard[input_char] = 'correct';
+                    } else {
+                        result.push('wrong'); // 0
+                        if (!(input_char in this.keyboard)) {
+                                this.keyboard[input_char] = 'wrong';
+                        } 
+                        missed_chars.push(aim_char);
+                    }
+                });
+
+                result.forEach((status,i) => {
+                    const input_char = this.cur_word[i];
+                    if (status == 'wrong' && missed_chars.includes(input_char)) {
+                        result[i] = 'misplace';
+                        if (!(input_char in this.keyboard) ||
+                             (this.keyboard[input_char] == 'wrong')) {
+                                this.keyboard[input_char] = 'misplace';
+                        } 
+                        // Delete the first matched letter in "missed_chars".
+                        missed_chars.splice(missed_chars.indexOf(input_char), 1);
+                    }
+                });
+
+                return result;
+            }
+            // "allCorrect" : Return true if all 5 letters are correct.
+            allCorrect()
+            {
+                let result = this.getCorrectText();
+                let count = 0;
+                result.forEach(status=>{
+                    if (status == 'correct') {
+                        count++;
+                    }
+                });
+                return (count==5)?true:false;
+            }
+        }
+
+        // Part 3. Perform a series of actions after the webpage is loaded.
+        window.onload= function() {
+            /****************************************************
+             * Initialize the "squares" and "keyboard".         * 
+             ****************************************************/
+            clearBoard();
+
+            /****************************************************
+             * Add event handler to the "square"s, "keyboard"   * 
+             * and buttons.                                     *
+             ****************************************************/
+            addEventHandler();
+        } 
+
+        /* Part 4.1 Helper function "clearBoard"
+        *  Initialize the "squares" and "keyboard", and then 
+        *  retrieve a new word via API to play with. */
+        function clearBoard()
+        {
+            // 1. Initialize the "squares".
+            var squares = document.getElementsByClassName('square');
+            squares = Array.from(squares);
+            squares.forEach(square => {
+                // Use &nbsp; to replace blank making life easier.
+                square.innerHTML = '&nbsp;';
+                square.className = 'square';
+            });
+
+            // 2. Initialize the "keyboard".
+            var keys = document.getElementsByClassName('key');
+            keys = Array.from(keys);
+            const alphabet = 'abcdefghijklmnopqrstuvwxyz'; // Letters from a to z
+
+            keys.forEach((key, index) => {
+                if (index < alphabet.length) { 
+                    key.innerHTML = alphabet[index]; 
+                    key.className = 'key'; 
+                }
+            });
+
+            // 3. Allow playing.
+            playing = true;
+            life = 6;
+            updateCounterByID('life', life); // Update the statistics.
+            word = new Word(); // Retrieve a new word.
+        }
+
+        /* Part 4.2 Helper function "addEventHandler"
+        *  Add event handler to the "suqare"s and the "start button".  */
+        function addEventHandler()
+        {
+            // 1. Add an event handler to respond to key input.
+            document.addEventListener('keydown', (e)=>playAndCheck(e));
+
+            // 2. Add event handlers to two buttons.
+            const btn_start = document.getElementById("start_game");
+            btn_start.addEventListener("click", clearBoard);
+
+            const btn_debug = document.getElementById("debug_mode");
+            btn_debug.addEventListener("click", showKeyWord);
+        }
+
+        /* Part 4.3 Helper function "playAndCheck"
+        *  It is the most important helper function in this game.
+        *  It identifies whether the pressed key is a letter, 
+        *  "Backspace", or "Enter". */
+        async function playAndCheck(event)
+        {
+            if (playing) {
+                const char = event.key.toLowerCase();
+                // If a player input a letter.
+                if (isLetter(char)) {
+                    // Display the letter on the screen.
+                    if (word.getCurWordLen() < 5)
+                    {
+                        drawCharOnBoard(char);
+                        word.pushChar(char);
+                    }                    
+                }
+                // If a player delete a letter.
+                else if (event.key === 'Backspace') {
+                    if (word.getCurWordLen() > 0)
+                    {
+                        word.popChar();
+                        drawCharOnBoard('&nbsp;');
+                    }
+                }
+                // If a player press 'Enter'.
+                else if (event.key === 'Enter') {
+                    if (word.getCurWordLen() < 5) 
+                    {
+                        alert("Not enough letters.");
+                    }
+                    else if (! await word.isWord()) 
+                    {
+                        alert("Not in word list. \n\n Please delete old word and then try another one. \n\n ");
+                        
+                    }
+                    else if (!word.isWordFetched())
+                    {
+                        alert("Fetching word ...");
+                    } 
+                    else
+                    {
+                        // Render the squares, based on the player's input.
+                        paintWordOnBoard();
+                        // Render the keyboard, based on the player's input.
+                        paintKeyboard();
+                        // If the player wins.
+                        if (word.allCorrect())
+                        {
+                            playing = false;
+                            updateCounterByID('win_times', ++win_times);
+                            setTimeout(()=> {
+                                alert(`Congratulation, the answer is "${word.getAnswer()}".`)
+                            }, 100);
+                        } else 
+                        {
+                            word.saveWord();
+                            // Reduce lives by 1.
+                            updateCounterByID('life', --life);
+                            if (life == 0) 
+                            {
+                                playing = false;
+                                updateCounterByID('lose_times', ++lose_times);
+                                setTimeout(() => {
+                                    alert(`Oops, the answer is "${word.getAnswer()}".`)
+                                }, 100);
+                            }
+                        }
+                    }
+                }
+            }            
+        }
+
+        // Part 4.4 Helper function "chooseWord"
+        // Randomly choose a word from a list, which has 100 words.
+        function chooseWord(words)
+        {
+            let i = Math.floor(Math.random() * 100);
+            return words[i]['word'];
+        }
+        // Part 4.5 Helper function "getCharIndex"
+        // Get index of the current letter on the board.
+        // For example, the 5th. letter of the 3rd. word's index is [2, 4].
+        function getCharIndex(myWord)
+        {
+            return [myWord.history_words.length, myWord.cur_word.length];
+        }
+        // Part 4.6 Helper function "getWordIndex"
+        // Similar to the getCharIndex() in Part 4.6.
+        // This function only returns the first index.
+        function getWordIndex(myWord)
+        {
+            return myWord.history_words.length;
+        }
+        // Part 4.7 Helper function "drawCharOnBoard"
+        // Print the player's latest input in the corresponding square.
+        function drawCharOnBoard(char)
+        {
+            const [word_i, char_i] = getCharIndex(word);
+            const i = word_i * 5 + char_i;
+            const id = 'sq' + i;
+            document.getElementById(id).innerHTML = char;
+        }
+        // Part 4.8 Helper function "paintWordOnBoard"
+        // Render the squares, based on the player's input.
+        // If the letter is "correct", set the backgroud color as green.
+        // If the letter is "wrong", set the backgroud color as gray.
+        // If the letter is "misplace", set the backgroud color as orange.
+        function paintWordOnBoard()
+        {
+            const word_index = getWordIndex(word);
+            const correct_text = word.getCorrectText();
+
+            for(let i=0; i<5; i++) {
+                let id = 'sq' + (word_index * 5 + i);
+                document.getElementById(id).classList.add(correct_text[i]);
+            }
+        }
+        // Part 4.9 Helper function "paintKeyboard"
+        // Render the keyboard, based on the player's input.
+        // The color is the same as that of paintWordOnBoard() in Part 4.9.
+        function paintKeyboard()
+        {
+            var keys = document.getElementsByClassName('key');
+            keys = Array.from(keys);
+            keys.forEach(key => {
+                if (key.innerHTML in word.keyboard) { 
+                    key.className = 'key';
+                    key.classList.add(word.keyboard[key.innerHTML]);
+                }
+            });
+        }
+        // Part 4.10 Helper function "showKeyWord"
+        // Display the answer on the screen if the debug mode is turned on.
+        // And hide the answer, otherwise.
+        function showKeyWord()
+        {
+            keyWord = document.getElementById("key_word");
+            if (keyWord.style.display == 'block') {
+                keyWord.style.display = 'none';
+            } else {
+                keyWord.style.display = 'block';
+            }
+        }
+        // Part 4.11 Helper function "updateCounterByID"
+        // Used to update counters on the sidebar.
+        // There are three counters in total: win, lose,
+        // and lives.
+        function updateCounterByID(tag, times)
+        {
+            document.getElementById(tag).innerHTML = times;
+        }
+        // Part 4.12 Helper function "printWord"
+        // Write the word into the HTML. It will become visible when 
+        // debug mode is turned on.
+        function printWord(myword)
+        {
+            var keyWord = document.getElementById("key_word");
+            if (keyWord) {
+                keyWord.innerHTML = myword;
+            }
+        }
+        // Part 4.13 Helper function "isLetter"
+        // Verify if the input key is a letter.
+        function isLetter(char)
+        {
+            return /^[a-zA-Z]$/.test(char);
+        }
+    </script>
+</div>
+</body>
+</html>
