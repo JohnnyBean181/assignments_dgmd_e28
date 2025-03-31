@@ -12,10 +12,10 @@
 		'orientation': 'horizontal',
 		'size': 3,
 		'coords':[3,3]
-		}
+		},
 		{
 		'name':'ship3',
-		'orientation': vertical,
+		'orientation': 'vertical',
 		'size': 2,
 		'coords':[6,5]
 		}
