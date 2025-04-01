@@ -344,7 +344,7 @@
                 this.ships = [];
                 this.buildShips();
 
-                // Players can guess 20 times by default.
+                // A player can guess 20 times by default.
                 this.guesses = guesses;
 
                 // "playing" is a flag, players can not click on
@@ -380,7 +380,7 @@
             // Retrieve ships data from URL.
             async getShips() 
             {
-                const url = "https://raw.githubusercontent.com/JohnnyBean181/assignments_dgmd_e28/refs/heads/main/hw7/bs1.json";
+                const url = "https://raw.githubusercontent.com/JohnnyBean181/assignments_dgmd_e28/refs/heads/main/hw7/battleship.json";
 
                 const request = new Request(url);
                 try {
