@@ -1,0 +1,492 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="This is the 7th. assignment for DGMD E-28. In this assignment, students are required to create an interective game based on the game of battleship." />
+    <title>Battleship</title>
+    <style type="text/css">
+        body,html {font-size: 26px}
+        .wrapper {
+            display: flex;  
+            flex-flow: row wrap;
+            font-weight: bold;
+            text-align: center; 
+        }
+        .wrapper > * {
+            padding: 3px;
+            flex: 1 100%;
+        }        
+        .board { /* container for squares */
+            padding: 20px;
+            display: grid;
+            width: 400px;
+            grid-template-columns: repeat(6, 65px);
+            grid-template-rows: repeat(6, 65px);
+            grid-gap: 0px;
+            position: relative;
+            margin: 0px auto;
+        }
+        .square {
+            border: 1px solid;
+            margin: 0px;
+            width: 62px;
+            height: 62px;
+            line-height: 62px;
+            text-align: center;
+        }
+        .square.miss {
+            background-color:lightgrey;
+        }
+        .square.hit, .square.sunk {
+            background-color:crimson;
+        }
+        #instruction {
+            text-align: left;
+            font-size: 18px;
+
+        }
+        @media all {
+            .aside { flex: 1 0 0; }
+            .main    { flex: 2 0px; }
+            .main    { order: 1; }
+            .aside-1 { order: 2; } 
+            .board {
+                margin: 2px 20px 2px auto;
+            }
+        }
+        #result, #lastGuessStatus {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<!-- Flexbox -->
+<div class="wrapper">
+    <!-- Title -->
+    <header class="header">
+        <h2>Homework 7: Battleship</h2>
+    </header>
+    <!-- Board : Place for squares -->
+    <div class="main">
+        <div id="board" class="board">
+            board
+        </div>
+    </div>
+    <!-- Sidebar : Place for Instructions and Score Board -->
+    <aside class="aside aside-1">
+        <div id="instruction">
+            Instructions:<br/>
+            <ul>
+                <li>Click on a square to find the battleships.</li>
+                <li>Find all three ships to win.</li>
+                <li>Gray square means 'miss'.</li>
+                <li>Red square means 'hit'.</li>
+                <li>Each game has 20 guesses(bombs).</li>
+            </ul>
+        </div>
+        <hr>
+        <!-- part1. how many bombs(guesses) left -->
+        <div>
+            Bombs left &nbsp;
+            <span id="bomb">0</span>            
+        </div>
+        <!-- part2. the status of the last round, eg. Hit, Miss, or Sunk -->
+        <div id="lastGuessStatus">
+            Last round : &nbsp;
+            <span id="status"></span>
+        </div>
+        <!-- part2. win or lose -->
+        <div>
+            <span id="result"></span>
+        </div>
+    </aside>
+    <script>
+        // Part 1.1 Class Definition of 'Board'.
+        // The 'Board' object consists of 36 squares, which conceal 3 battleships.
+        // The 'Board' class is responsible for four main tasks:
+        // 1. Manage an array of "square" object.
+        // 2. Create the HTML code for the game board.
+        // 3. Load battleship information into the squares.
+        // 4. Display the ships when the game is over.
+        class Board
+        {
+            constructor(row, col, playAndCheck)
+            {
+                // By default, "NUM_SQUARES" = 6*6 = 36.
+                this.NUM_SQUARES = row*col;
+                this.row = row;
+                this.col = col;
+
+                // Create the game board.
+                this.createBoard();
+
+                // "squares" is an array of "square" object.
+                // The "squares" will be created in the next step.
+                this.squares = [];
+                this.createSquares(row, col);
+                // Add event handler to the squares.
+                this.addEventHandler(playAndCheck);
+            }
+            // Create an array of "square" objects.
+            createSquares(row, col)
+            {
+                for(let i=0; i<row; i++) {
+                    for(let j=0; j<col; j++) {
+                        this.squares.push(new Square(i, j, i*row+j));
+                    }
+                }
+            }
+            // Create the HTML code for the game board.
+            createBoard()
+            {
+                const board = document.getElementById("board");
+                board.innerHTML = Array(this.NUM_SQUARES).fill(0).map((_,i)=>"<div class='square' id='" + "sq"+i + "'></div>").join("");
+            }
+            getSquare(row, col) // helper function
+            {
+                return this.squares[row*6+col];
+            }
+            getSquareByID(id) // helper function
+            {
+                const num = parseInt(id.substring(2));
+                return this.squares[num];
+            }
+            getSquares()
+            {
+                return this.squares;
+            }
+            // Notify each square which contains a part of a ship.
+            placeShips(ships)
+            {
+                ships.forEach(ship=>{
+                    // Each ship sends its location to the "board".
+                    Array(ship.size).fill(0).forEach((_,i)=>{
+                        // Each part of a ship needs to be flagged, and
+                        // the flag is set in the corresponding "square" object.
+                        if (ship.orientation=="vertical") {
+                            this.getSquare(ship.row+i, ship.col).placeShip();
+                        } else {
+                            this.getSquare(ship.row, ship.col+i).placeShip();
+                        }
+                    });
+                });
+            }
+            // Display the ships on the board.
+            displayShips()
+            {
+                this.squares.forEach(square=>{
+                    if (square.hasShip()) {
+                        square.addLetter();
+                    }
+                });
+            }
+            // Add event handler to the "suqare"s.
+            addEventHandler(playAndCheck)
+            {
+                this.squares.forEach(square=>{
+                    square.getElement().addEventListener("click", playAndCheck); 
+                });
+            }
+        }
+        // Part 1.2 Class Definition of 'ScoreBoard'.
+        // The role of 'ScoreBoard' is more like a tool.
+        // It doesn't save any variables but updates the scoreboard when required.
+        // It is responsible for updating the guess counter, the status of the 
+        // last round, and the final result.
+        class ScoreBoard
+        {
+            constructor(bomb=20)
+            {
+                this.setBombCounter(bomb);
+            }
+            // update the guess(bomb) counter
+            setBombCounter(counter)
+            {
+                document.getElementById("bomb").innerHTML = counter;
+            }
+            // update the status of the last round
+            setLastGuessStatus(status)
+            {
+                var statusBlock = document.getElementById("lastGuessStatus");
+                if (!statusBlock.style.display) {
+                    statusBlock.style.display = 'block';
+                }
+                document.getElementById("status").innerHTML = status;
+            }
+            // update the final result
+            setFinalResult(result)
+            {
+                var resultBlock = document.getElementById("result");
+                if (!resultBlock.style.display) {
+                    resultBlock.style.display = 'block';
+                }
+                resultBlock.innerHTML = result;
+            }
+        }
+        // Part 1.3 Class Definition of 'Square'.
+        // The "Square" class serves as an helper class.
+        // It stores the ID of a div (e.g., 'sq0', 'sq15').
+        // It also tracks whether the square has been clicked, 
+        // and whether it contains a part of a ship.
+        // Moreover, it can add letter 'O' to the div, which is 
+        // triggered when game is over.
+        class Square
+        {
+            constructor(row, col, id)
+            {
+                this.row = row;
+                this.col = col;
+                this.id = "sq" + id;
+                this.clicked = false;
+                this.has_ship = false;
+            }
+            placeShip()
+            {
+                this.has_ship = true;
+            }
+            hasBeenClicked()
+            {
+                return this.clicked;
+            }
+            // Assign "this.clicked" to true.
+            click()
+            {
+                this.clicked = true;
+                return [this.row, this.col];
+            }
+            // Change the square's background color by adding a class attribute.
+            setColor(status)
+            {
+                this.getElement().classList.add(status);
+            }
+            hasShip()
+            {
+                return this.has_ship;
+            }
+            // Put a letter 'O' in the div element.
+            addLetter(letter='O')
+            {
+                this.getElement().innerHTML=letter;
+            }
+            // Return the square element
+            getElement()
+            {
+                return document.getElementById(this.id);
+            }
+        }
+        // Part 1.4 Class Definition of 'Ship'.
+        // Each 'Ship' object represents a ship and holds its essential details.
+        // It can determine whether a guess hits the ship and whether the ship 
+        // is sunk. 
+        class Ship
+        {
+            constructor(ship)
+            {
+                // Three essential attributes.
+                this.name = ship["name"];
+                this.orientation = ship["orientation"];
+                this.size = ship["size"];
+
+                // The coords passed in are in the order of [col, row].
+                [this.col, this.row] = ship["coords"];
+                // The first [col, row] is [1, 1],
+                // so we need to convert the coords to [0, 0].
+                this.row = parseInt(this.row)-1;
+                this.col = parseInt(this.col)-1;
+
+                // "lives" is initially set to the size of the ship.
+                // It decreases by 1 each time the ship is hit.
+                this.lives = this.size;
+            }
+            // Check if the clicked square is a part of the ship.
+            // If it is, reduce the ship's lives by 1 and return true.
+            isHit(row, col)
+            {
+                // The hit status is checked here instead of in the "board" 
+                // because it helps determe if a ship has been sunk.
+                var hit = false;
+                Array(this.size).fill(0).forEach((_,i)=>{
+                    if (this.orientation=="vertical") {
+                        if (((this.row+i)==row) && (this.col==col)) {
+                            this.lives--;
+                            hit = true;
+                        }
+                    } else {
+                        if ((this.row==row) && ((this.col+i)==col)) {
+                            this.lives--;
+                            hit = true;
+                        }
+                    }
+                });
+                return hit;
+            }
+            isSunk()
+            {
+                return this.lives==0?true:false;
+            }
+        }
+        // Part 1.5 Class Definition of 'Game'.
+        // This is the core class of the project.
+        // It initializes the game by constructing the game board.
+        // Then, the "game" object creates an array of ships and
+        // places ships on the board.
+        class Game
+        {
+            constructor(row=6, col=6, guesses=20)
+            {
+                // "board" is an object which locates at the center of the webpage.
+                this.board;
+                // "scoreBoard" is an object which is to the right of "board".
+                this.scoreBoard;
+                this.buildBoard(row, col);
+                
+                // "ships" is an array of "Ship" object.
+                this.ships = [];
+                this.buildShips();
+
+                // Players can guess 20 times by default.
+                this.guesses = guesses;
+
+                // "playing" is a flag, players can not click on
+                // the board once it becomes false;
+                this.playing = true;
+            }
+            buildBoard(row, col)
+            {
+                // This third parameter is a function.
+                // It enables the "board" to visit all 
+                // the member variables in the "game".
+                this.board = new Board(row, col, this.playAndCheck.bind(this));
+
+                this.scoreBoard = new ScoreBoard();
+            }
+            playAndCheck(event)
+            {
+                const id = event.target.id;
+                const square = this.board.getSquareByID(id);
+                // If the square has not been clicked before,
+                if (this.playing && !square.hasBeenClicked()){
+                    // Check whether the click is a hit or a miss.
+                    const respond = this.getRespond(square);
+                    
+                    // Update the board and the score board.
+                    this.updateBoard(square, respond);
+
+                    // Check if the play wins or loses.
+                    this.checkWinLose();
+                }
+            }
+            // Helper function : getShips
+            // Retrieve ships data from URL.
+            async getShips() 
+            {
+                const url = "https://raw.githubusercontent.com/JohnnyBean181/assignments_dgmd_e28/refs/heads/main/hw7/bs1.json";
+
+                const request = new Request(url);
+                try {
+                    const response = await fetch(request);
+                    const json = await response.json();
+                    if (response.status == 200) {
+                        return json["ships"];
+                    } else {
+                        console.log('Server Error', words);
+                    }
+                } catch(error) {
+                    console.log('Fetch Error', error);
+                }
+            }
+            // helper function : buildShips
+            // 1. Retrieve json data of ships from URL.
+            // 2. Transform json data to object.
+            // 3. Place ships on the board.
+            async buildShips()
+            {
+                // step 1.
+                const json_ships = await this.getShips();
+
+                // step 2.
+                json_ships.forEach(json_ship => {
+                    let newShip = new Ship(json_ship);
+                    this.ships.push(newShip);
+                });
+
+                // step 3.
+                this.board.placeShips(this.ships);
+            }
+            // helper function : getRespond
+            // Check if a click is a miss, hit or sunk.
+            getRespond(square)
+            {
+                const [row, col] = square.click();
+                var respond = "miss";
+                this.ships.forEach(ship=>{
+                    if (ship.isHit(row, col)) {
+                        respond = "hit";
+                        if (ship.isSunk()) {
+                            respond = "sunk";
+                        }
+                    }
+                });
+
+                return respond;
+            }
+            // helper function : updateBoard
+            // update the board and the score board.
+            updateBoard(square, respond)
+            {
+                // Render the color of the clicked square.
+                square.setColor(respond);
+
+                // Update the score board.
+                this.scoreBoard.setBombCounter(--this.guesses);
+                this.scoreBoard.setLastGuessStatus(respond);
+            }
+            checkWinLose()
+            {
+                // If all ships sunk, the player wins.
+                if (this.isAllSunk())
+                {
+                    this.playing = false;
+                    this.displayShips();
+                    this.scoreBoard.setFinalResult("You Win!");
+                } // If all guesses are used up, the player loses.
+                else if (this.guesses==0)
+                {
+                    this.playing = false;
+                    this.displayShips();
+                    this.scoreBoard.setFinalResult("You Lose!");
+                }
+            }
+            // helper function : isAllSunk
+            // Verify if all three ships has been sunk.
+            isAllSunk()
+            {
+                var count_sunk_ships = 0;
+                this.ships.forEach(ship=>{
+                    if (ship.isSunk()) {
+                        count_sunk_ships++;
+                    }
+                });
+                return count_sunk_ships==this.ships.length?true:false;
+            }
+            // helper function : displayShips
+            // Display ships on board.
+            displayShips()
+            {
+                this.board.displayShips();
+            }
+        }
+
+        // Part 2. Claim variables.
+        // The variable "game" is the only global variable needed for this project.
+        var game;
+
+        // Part 3. Perform a series of actions after the webpage is loaded.
+        window.onload= function() 
+        {
+            game = new Game();
+        }        
+    </script>
+</div>
+</body>
+</html>
