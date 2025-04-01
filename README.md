@@ -1,5 +1,10 @@
 This is the repository for DGMD E-28 2025 spring term. 
 
+### Assignment 7 Battleship (Apr. 1 2025):
+Students are required to create an interective game based on the game of battleship.
+
+[URL](https://johnnybean181.github.io/assignments_dgmd_e28/hw7/battleship.html) for this assignment.
+
 ### Assignment 6 Wordle (Mar. 19 2025):
 Students are required to use Javascript objects plus an API to create a one-page game app.
 
