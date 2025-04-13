@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="description" content="This webpage is the 8th. assignment for DGMD E-28. In this assignment, students are required to use React to create some elements of the Wordle game." />
+    <title>Assignment 8</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <style>
+        body, html {padding: 0px; font-size: 30px}
+        .myGameBoard { /* container for squares */
+            padding: 20px;
+            display: grid;
+            width: 360px;
+            grid-template-columns: repeat(5, 65px);
+            grid-template-rows: repeat(6, 65px);
+            grid-gap: 5px;
+            position: relative;
+            margin: 2px auto;
+        }
+        .square {
+            border: 1px solid;
+            margin: 5px;
+            width: 60px;
+            height: 60px;
+            line-height: 60px;
+            text-align: center;
+        }
+        .keyboard { /* container for keys */
+            width: 400px;
+            display: grid;
+            grid-template-columns: repeat(7, 50px);
+            grid-template-rows: repeat(4, 50px);
+            grid-gap: 5px;
+            position: relative;
+            margin: 2px auto;
+        }
+        .key {
+            border: 1px solid;
+            margin: 5px;
+            width: 46px;
+            height: 46px;
+            line-height: 46px;
+            text-align: center;
+        }
+        .square.correct, .key.correct {
+            background-color:lightgreen;
+        }
+        .square.misplace, .key.misplace {
+            background-color:rgb(240, 195, 62);
+        }
+        .square.wrong, .key.wrong {
+            background-color:lightgrey;
+        }
+        h2{
+            margin: 0px;
+        }
+        .wrapper {
+            display: flex;  
+            flex-flow: row wrap;
+            font-weight: bold;
+            text-align: center; 
+        }
+        .wrapper > * {
+            padding: 3px;
+            flex: 1 100%;
+        }        
+        .keyboard { 
+            width: 500px;
+            grid-template-columns: repeat(9, 50px);
+            grid-template-rows: repeat(3, 50px);
+        }
+
+    </style>
+</head>
+<body>
+<!-- Flexbox -->
+<div class="wrapper">
+    <!-- Title -->
+    <header class="header">
+        <h2>Homework 8: Wordle with React</h2>
+    </header>
+
+    <!-- Squares : Place to type letters -->
+    <div id="main" class="main">
+    </div>
+
+    <!-- keyboard : Used to indicate which key has been used before. -->
+    <footer id="footer" class="footer">
+    </footer>
+
+    <script>
+        // Part 1.1 Definition of the 'Square' object.
+        // Each square contains a letter and a tag which indicates whether the letter
+        // is correct or not.
+        class Square {
+            constructor(id, letter, className)
+            {
+                this.id = id; // e.g. "sq0", "key12"
+                this.letter = letter; // e.g. 'a', 'b'
+                this.className = className; // e.g. 'square correct', 'key wrong'
+            }
+        }
+
+        // Part 1.2 Definition of the 'Board' object.
+        class Board {
+            // The board consists of a list of squares that represent the gameboard.
+            // It also contains a list of keys that represent the keyboard.
+            // Additionally, it includes a word object used to render the squares with
+            // specific colors.
+            constructor(word, n_squares=30)
+            {
+                // The gameboard is composed of 30 squares.
+                this.squares = this.createSquares(n_squares);
+                // The keyboard is composed of 26 keys.
+                this.keys = this.createKeys();
+                // The "word" object is used to handle input and input history. 
+                this.word = word;
+                // For this assignment, we hard code three words on the webpage.
+                this.fillInWords();
+            }
+            // "createSquares" :
+            // Return a list of squares.
+            createSquares(n_squares)
+            {
+                return Array(n_squares).fill(0).map((_,i)=>new Square('sq'+i, '', 'square'));
+            }
+            // "createKeys" :
+            // Return a list of keys.
+            createKeys()
+            {
+                const alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
+                return Array(26).fill(0).map((_,i)=>new Square('key'+i, alphabet[i], 'key'));
+            }
+            // "fillInWords" :
+            // For this assignment, we hard code three words on the webpage.
+            fillInWords()
+            {
+                // e.g. ['m', 'i', 'g', 'h', 't', ... , 'a', 'y']
+                const initletters = this.word.getHardCodedWordsByLetters();
+                // e.g. ['correct', 'wrong', ..., 'wrong', 'correct']
+                const correctness = this.word.getWordsCorrectness();
+                initletters.forEach((letter, i)=>{
+                    // Add a letter to a square.
+                    this.squares[i].letter = letter;
+                    // And also add its correctness to the attribute "className".
+                    this.squares[i].className += ' ' + correctness[i];
+                });
+                // Tell the keyboard about the correctness of each key.
+                this.addTagToKeyboard(this.word.keyboardTag);
+            }
+            // Tell the keyboard about the correctness of each key.
+            // If the letter is "correct", set its backgroud color as green.
+            // If the letter is "wrong", set its backgroud color as gray.
+            // If the letter is "misplace", set its backgroud color as orange.
+            addTagToKeyboard(keyboardTag)
+            {
+                this.keys.forEach(key=>{
+                    if (key.letter in keyboardTag) {
+                        key.className += ' ' + keyboardTag[key.letter];
+                    }
+                });
+            }
+            // Generate the HTML code for the webpage using "myGameBoard" function.
+            buildGameBoard()
+            {
+                const board = React.createElement(this.myGameBoard, {squares: this.squares}, null);
+                const main = document.getElementById('main');
+                ReactDOM.createRoot(main).render(board);
+            }
+            // Use React to create a board composed of two level: the first level is 
+            // a div, and the second level consists of 30 squares. The first 15 squares
+            // are hard coded with letters.
+            myGameBoard(props)
+            {
+                // Return a div, which is nested with a list of sub-divs.
+                return React.createElement("div", {id: "myGameBoard", className:"myGameBoard"}, 
+                    props.squares.map((square, i)=>React.createElement(
+                        "div",
+                        {className: square.className, 
+                        id: square.id,
+                        key:i},
+                        square.letter)));
+            }
+            // Generate the HTML code for the webpage using "myKeyboard" function.
+            buildKeyboard()
+            {
+                const keyboard = React.createElement(this.myKeyboard, {keys: this.keys}, null);
+                const footer = document.getElementById('footer');
+                ReactDOM.createRoot(footer).render(keyboard);
+            }
+            // Use React to create a keyboard composed of two level: the first level is 
+            // a div, and the second level consists of 26 sub-divs. Each sub-div is
+            // filled with a letter from 'a' to 'z'.
+            myKeyboard(props)
+            {
+                // Return a div, which is nested with a list of sub-divs.
+                return React.createElement("div", {className:"keyboard"}, 
+                    props.keys.map((key, i)=>React.createElement(
+                        "div",
+                        {className:key.className, 
+                        id: key.id, 
+                        key:i},
+                        key.letter)));
+            }
+        }
+
+        // Part 1.3 Definition of the 'Word' object.
+        class Word {
+            constructor()
+            {
+                // 'answer' stores a 5-letter word.
+                // For example, ['m','o','o','d','y'].
+                this.answer; 
+
+                // For this assignment, we hard code three guesses.
+                this.hardCodedWords = ["might", "flood", "stray"];
+
+                // 'keyboardTag' stores all the letters attempted by the players.
+                // It is presented as an Associative Array so JavaScript knows 
+                // how to render the "keyboard" with colors. 
+                // For example: { "a":"correct", "b":"wrong", "c":"misplace" }.
+                this.keyboardTag = [];
+
+                // Initialize the 'answer' variable.
+                this.retrieveAnswer();
+            }
+            // "retrieveAnswer" : 
+            // Fetch a 5-letter word from a website using an API.
+            // For this assignment, we hard code it as "moody";
+            retrieveAnswer()
+            {
+                this.answer = "moody".split("");
+            }
+            // "getHardCodedWordsByLetters" :
+            // Get a list of letters.
+            // e.g. ['m', 'i', 'g', 'h', 't', ... , 'a', 'y']
+            getHardCodedWordsByLetters()
+            {
+                return this.hardCodedWords.join('').split('');
+            }
+            // "getWordsCorrectness" :
+            // Combine three correctness lists together.
+            // e.g. ["correct", "wrong", "wrong", ...]
+            getWordsCorrectness()
+            {
+                var [l1, l2, l3] = this.hardCodedWords.map(w=>this.getWordCorrectness(w));
+                return l1.concat(l2).concat(l3);
+            }
+            // "getWordCorrectness" :
+            // 1. Verify if an input word is correct or not.
+            // An Array is returned so JavaScript knows how to render the "squares".
+            // For example: For the input word "title", this func-
+            // tion returns ["correct", "wrong", "wrong", "wrong", "misplace"].
+            //  - "correct" means the letter exists and it's in the correct
+            //    location.
+            //  - "misplace" means the letter exists but it's in the wrong
+            //     location.
+            //  - "wrong" means the letter does not exist.
+            // 2. Update the Associative Array 'keyboard', this array is used to 
+            // help rendering the "keyboard" with colors. An example has been provided 
+            // in the constructor.
+            getWordCorrectness(source_word)
+            {
+                let result = [];
+                let missed_chars = [];
+                // In the first loop, we simply tag the correct letter
+                // as 'correct', and tag others as 'wrong'.
+                // Besides, wrong letters are pushed into a list for
+                // later verification.
+                this.answer.forEach((target_char,i) => {
+                    const source_char = source_word[i];
+                    if (target_char == source_char) {
+                        result.push('correct'); // 1
+                        this.keyboardTag[source_char] = 'correct';
+                    } else {
+                        result.push('wrong'); // 0
+                        if (!(source_char in this.keyboardTag)) {
+                                this.keyboardTag[source_char] = 'wrong';
+                        } 
+                        missed_chars.push(target_char);
+                    }
+                });
+
+                // In the second loop, we verify if the letter is misplaced.
+                result.forEach((status,i) => {
+                    const source_char = source_word[i];
+                    if (status == 'wrong' && missed_chars.includes(source_char)) {
+                        result[i] = 'misplace';
+                        if (!(source_char in this.keyboardTag) ||
+                                (this.keyboardTag[source_char] == 'wrong')) {
+                                this.keyboardTag[source_char] = 'misplace';
+                        } 
+                        // Delete the first matched letter in "missed_chars".
+                        missed_chars.splice(missed_chars.indexOf(source_char), 1);
+                    }
+                });
+
+                return result;
+            }
+        }
+
+        // Part 2. Perform a series of actions after the webpage is loaded.
+        window.onload= function() {
+            // Create a local variable "word".
+            let word = new Word();
+            // Create a global variable "board", and send the word into the board.
+            window.board = new Board(word);
+            
+            // Use React to build the board.
+            board.buildGameBoard();
+            // Use React to build the keyboard.
+            board.buildKeyboard();
+        } 
+    </script>
+</div>
+</body>
+</html>
