@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="description" content="This webpage is the 8th. assignment for DGMD E-28. In this assignment, students are required to use React to create some elements of the Wordle game." />
+    <title>Assignment 8</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <style>
+        body, html {padding: 0px; font-size: 30px}
+        .mybox { /* container for squares */
+            padding: 20px;
+            display: grid;
+            width: 360px;
+            grid-template-columns: repeat(5, 65px);
+            grid-template-rows: repeat(6, 65px);
+            grid-gap: 5px;
+            position: relative;
+            margin: 2px auto;
+        }
+        .square {
+            border: 1px solid;
+            margin: 5px;
+            width: 60px;
+            height: 60px;
+            line-height: 60px;
+            text-align: center;
+        }
+        .keyboard { /* container for keys */
+            width: 400px;
+            display: grid;
+            grid-template-columns: repeat(7, 50px);
+            grid-template-rows: repeat(4, 50px);
+            grid-gap: 5px;
+            position: relative;
+            margin: 2px auto;
+        }
+        .key {
+            border: 1px solid;
+            margin: 5px;
+            width: 46px;
+            height: 46px;
+            line-height: 46px;
+            text-align: center;
+        }
+        .square.correct, .key.correct {
+            background-color:lightgreen;
+        }
+        .square.misplace, .key.misplace {
+            background-color:rgb(240, 195, 62);
+        }
+        .square.wrong, .key.wrong {
+            background-color:lightgrey;
+        }
+        h2{
+            margin: 0px;
+        }
+        .wrapper {
+            display: flex;  
+            flex-flow: row wrap;
+            font-weight: bold;
+            text-align: center; 
+        }
+        .wrapper > * {
+            padding: 3px;
+            flex: 1 100%;
+        }        
+        .keyboard { 
+            width: 500px;
+            grid-template-columns: repeat(9, 50px);
+            grid-template-rows: repeat(3, 50px);
+        }
+
+    </style>
+</head>
+<body>
+<!-- Flexbox -->
+<div class="wrapper">
+    <!-- Title -->
+    <header class="header">
+        <h2>Homework 8: Wordle with React</h2>
+    </header>
+
+    <!-- Squares : Place to type letters -->
+    <div id="main" class="main">
+    </div>
+
+    <!-- keyboard : Used to indicate which key has been used before. -->
+    <footer id="footer" class="footer">
+    </footer>
+
+    <script>
+        // Part 1. Declare global variables.
+        // 'word' is an object which stores the correct word in "this.answer".
+        // It also implements a method which can tell if a guess is correct or not.
+        var word;
+
+        // Part 2. Definition of the 'Word' object.
+        class Word {
+            constructor()
+            {
+                // 'answer' stores a 5-letter word.
+                // For example, ['a','p','p','l','e'].
+                this.answer; 
+                // 'keyboard' stores all the letters attempted by the players.
+                // It is presented as an Associative Array so JavaScript knows 
+                // how to render the "keyboard" with colors. 
+                // For example: { "a":"correct", "b":"wrong", "c":"misplace" }.
+                this.keyboard = [];
+
+                // Initialize the 'answer' variable.
+                this.retrieveWord();
+            }
+            // "retrieveWord" : 
+            // Fetch a 5-letter word from a website using an API.
+            // For this assignment, we set it as "moody";
+            retrieveWord()
+            {
+                this.answer = "moody".split("");
+            }
+            // "getCorrectText" :
+            // 1. Verify if an input word is correct or not.
+            // An Array is returned so JavaScript knows how to render the "squares".
+            // For example: For the input word "title", this func-
+            // tion returns ["correct", "wrong", "wrong", "wrong", "misplace"].
+            //  - "correct" means the letter exists and it's in the correct
+            //    location.
+            //  - "misplace" means the letter exists but it's in the wrong
+            //     location.
+            //  - "wrong" means the letter does not exist.
+            // 2. Update the Associative Array 'keyboard', this array is used to 
+            // help rendering the "keyboard" with colors. An example has been provided 
+            // in the constructor.
+            getWordCorrectness(source_word)
+            {
+                let result = [];
+                let missed_chars = [];
+                console.log(source_word + ':' + this.answer);
+                // In the first loop, we simply tag the correct letter
+                // as 'correct', and tag others as 'wrong'.
+                // Besides, wrong letters are pushed into a list for
+                // later verification.
+                this.answer.forEach((target_char,i) => {
+                    const source_char = source_word[i];
+                    if (target_char == source_char) {
+                        result.push('correct'); // 1
+                        this.keyboard[source_char] = 'correct';
+                    } else {
+                        result.push('wrong'); // 0
+                        if (!(source_char in this.keyboard)) {
+                                this.keyboard[source_char] = 'wrong';
+                        } 
+                        missed_chars.push(target_char);
+                    }
+                });
+
+                // In the second loop, we verify if the letter is misplaced.
+                result.forEach((status,i) => {
+                    const source_char = source_word[i];
+                    if (status == 'wrong' && missed_chars.includes(source_char)) {
+                        result[i] = 'misplace';
+                        if (!(source_char in this.keyboard) ||
+                                (this.keyboard[source_char] == 'wrong')) {
+                                this.keyboard[source_char] = 'misplace';
+                        } 
+                        // Delete the first matched letter in "missed_chars".
+                        missed_chars.splice(missed_chars.indexOf(source_char), 1);
+                    }
+                });
+
+                return result;
+            }
+        }
+
+        // Part 3. Perform a series of actions after the webpage is loaded.
+        window.onload= function() {
+            // Hard code 3 guesses.
+            var initWords = ["might", "flood", "stray"];
+            // Each game has 6 guesses, so there are 30 squares on the board.
+            var NUM_SQUARES = 30;
+
+            // Create a new word.
+            word = new Word();
+            
+            // Use React to build the board.
+            buildBoard(NUM_SQUARES, initWords);
+            // Use React to build the keyboard.
+            buildKeyboard();
+
+            // Because React may not build the elements immediately,
+            // we use "requestAnimationFrame" to postpone
+            // the render function so that it take place after the
+            // HTML codes are created. 
+            requestAnimationFrame(() => {
+                renderWordsOnBoard(initWords);
+                renderKeyboard();
+            });
+        } 
+        // helper function : myBoard 
+        // Use React to create a board composed of two level: the first level is 
+        // a div, and the second level consists of 30 squares. The first 15 squares
+        // are hard coded with letters.
+        function myBoard(props)
+        {
+            // e.g. ['m', 'o', 'o', 'd', 'y'].
+            const initletters = props.initLetters.split('');
+            // Create a list of 30 letters.
+            var mylist = Array(props.NUM_SQUARES).fill('');
+            // Add hard code letters to "mylist".
+            initletters.forEach((letter, i)=>{
+                mylist[i] = letter;
+            });
+            // Return a div, which is nested with a list of sub-divs.
+            return React.createElement("div", {id: "mybox", className:"mybox"}, 
+                mylist.map((letter, i)=>React.createElement(
+                    "div",
+                    {className:"square", id: 'sq'+i, key:i},
+                    letter)));
+        }
+
+        // helper function : buildBoard
+        // Generate the HTML code for the webpage using the "myBoard" we created ealier.
+        // n: number of squares. e.g. 30
+        // initWords: hard code guesses. e.g. ["might", "flood"]
+        function buildBoard(n=30, initWords=null)
+        {
+            const board = React.createElement(myBoard, {NUM_SQUARES: n, initLetters: initWords.join("")}, null);
+            const main = document.getElementById('main');
+            ReactDOM.createRoot(main).render(board);
+        }
+
+        // helper function : myKeyboard 
+        // Use React to create a keyboard composed of two level: the first level is 
+        // a div, and the second level consists of 26 sub-divs. Each sub-div is
+        // filled with a letter from 'a' to 'z'.
+        function myKeyboard()
+        {
+            // e.g. ['a', 'b', ... , 'z']
+            const alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
+            // Return a div, which is nested with a list of sub-divs.
+            return React.createElement("div", {className:"keyboard"}, 
+                alphabet.map((letter, i)=>React.createElement(
+                    "div",
+                    {className:"key", id: 'key'+i, key:i},
+                    letter)));
+        }
+
+        // helper function : buildKeyboard
+        // Generate the HTML code for the webpage using the "buildKeyboard"
+        // we created ealier.
+        function buildKeyboard()
+        {
+            const keyboard = React.createElement(myKeyboard, null, null);
+            const footer = document.getElementById('footer');
+            ReactDOM.createRoot(footer).render(keyboard);
+        }
+
+        // helper function "renderWordsOnBoard"
+        // Render the squares with colors, based on the player's input.
+        // step 1: pick a word
+        // step 2: verify the correctness of each letter in the word
+        // step 3: call "renderWordOnBoard"
+        function renderWordsOnBoard(words)
+        {
+            words.forEach((w,i)=>{
+                const correctness = word.getWordCorrectness(w);
+                renderWordOnBoard(correctness, i);
+            });
+        }
+
+        // helper function "renderWordOnBoard"
+        // If the letter is "correct", set the backgroud color as green.
+        // If the letter is "wrong", set the backgroud color as gray.
+        // If the letter is "misplace", set the backgroud color as orange.
+        function renderWordOnBoard(correctness, row_id)
+        {
+            correctness.forEach((status,i)=>{
+                let id = 'sq' + (row_id * 5 + i);
+                document.getElementById(id).classList.add(status);
+            });
+        }
+
+        // helper function "renderKeyboard"
+        // Render the keyboard with colors, based on the player's input.
+        // The color is similar to that of "renderWordOnBoard".
+        function renderKeyboard()
+        {
+            var keys = document.getElementsByClassName('key');
+            keys = Array.from(keys);
+            keys.forEach(key => {
+                if (key.innerHTML in word.keyboard) { 
+                    key.classList.add(word.keyboard[key.innerHTML]);
+                }
+            });
+        }
+    </script>
+</div>
+</body>
+</html>
