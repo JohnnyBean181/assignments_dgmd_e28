@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="description" content="This webpage is the 9th. assignment for DGMD E-28. In this assignment, students are required to use React JSX to redo the Wordle game." />
+    <title>Assignment 9</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body, html {padding: 0px; font-size: 30px}
+        .myGameBoard { /* container for squares */
+            padding: 20px;
+            display: grid;
+            width: 360px;
+            grid-template-columns: repeat(5, 65px);
+            grid-template-rows: repeat(6, 65px);
+            grid-gap: 5px;
+            position: relative;
+            margin: 2px auto;
+        }
+        .square {
+            border: 1px solid;
+            margin: 5px;
+            width: 60px;
+            height: 60px;
+            line-height: 60px;
+            text-align: center;
+        }
+        .keyboard { /* container for keys */
+            width: 400px;
+            display: grid;
+            grid-template-columns: repeat(7, 50px);
+            grid-template-rows: repeat(4, 50px);
+            grid-gap: 5px;
+            position: relative;
+            margin: 2px auto;
+        }
+        .key {
+            border: 1px solid;
+            margin: 5px;
+            width: 46px;
+            height: 46px;
+            line-height: 46px;
+            text-align: center;
+        }
+        .square.correct, .key.correct {
+            background-color:lightgreen;
+        }
+        .square.misplace, .key.misplace {
+            background-color:rgb(240, 195, 62);
+        }
+        .square.wrong, .key.wrong {
+            background-color:lightgrey;
+        }
+        h2{
+            margin: 0px;
+        }
+        .wrapper {
+            display: flex;  
+            flex-flow: row wrap;
+            font-weight: bold;
+            text-align: center; 
+        }
+        .wrapper > * {
+            padding: 3px;
+            flex: 1 100%;
+        }        
+        .keyboard { 
+            width: 500px;
+            grid-template-columns: repeat(9, 50px);
+            grid-template-rows: repeat(3, 50px);
+        }
+
+    </style>
+</head>
+<body>
+<!-- Flexbox -->
+<div class="wrapper">
+    <!-- Title -->
+    <header class="header">
+        <h2>Homework 9: Wordle with React (Ver. 2)</h2>
+    </header>
+
+    <!-- Gameboard : Place to type letters -->
+    <div id="main" class="main">
+    </div>
+
+    <!-- Keyboard : Used to indicate which key has been used before. -->
+    <footer id="footer" class="footer">
+    </footer>
+
+    <script type = 'text/babel'>
+        /************************************************************
+        Part 1. In this part, we build a block of code which will be
+                used to generate new HTML code using JSX.
+        *************************************************************/
+
+        // Part 1.1 Definition of function 'Square'.
+        // 'Square' stores all the information need for a 'div' element.
+        // It contains the following member variables:
+        //  1. id - id is used to identify each div element.
+        //  2. letter - the text that a player can see in each div. 
+        //  3. className - used to indicate two attributes:
+        //      3.1 whether it belongs to the "Gameboard" or "Keyboard",
+        //          'square' stands for "Gameboard", and 'key' stands
+        //          for "Keyboard";
+        //      3.2 the correctness of the letter. It could be either one
+        //          of 'correct', 'wrong', or 'misplace'.
+        function Square (id, letter, className){
+            this.id = id; // e.g. "sq0", "key12"
+            this.letter = letter; // e.g. 'a', 'b'
+            this.className = className; // e.g. 'square correct', 'key wrong'
+        }
+
+        // Part 1.2 JSX Componets : 'Div'
+        function Div({id, className, text})
+        {
+            return  <div id={id} className={className}>{text}</div>;
+        }
+
+        // Part 1.3 JSX Component : 'MyBoard'
+        // This component is used to create the "Gameboard" and "Keyboard"
+        // The "Gameboard" is where a player input letters,
+        // while the "Keyboard" is where the player can read the correctness
+        // of their input.
+        function MyBoard({squares, boardName})
+        {
+            return <div id={boardName} className={boardName}>
+                {
+                    squares.map((square, i)=>
+                        <Div key={i} id={square.id} text={square.letter} className={square.className}/>
+                        )
+                }
+                </div>;
+        }
+
+        /************************************************************
+        Part 2. In the second part, we define two classes. They are
+                "Word" and "Board". In application, the "Word" will be 
+                instanced and become a member variable of "Board".
+        *************************************************************/
+
+        // Part 2.1 Definition of the 'Board' class.
+        class Board {
+            // The board consists of a list of squares that represent the gameboard.
+            // It also contains a list of keys that represent the keyboard.
+            // Additionally, it includes a word object used to render the squares with
+            // specific colors.
+            constructor(word, n_squares=30)
+            {
+                // The gameboard is composed of 30 squares.
+                this.squares = this.createSquares(n_squares);
+                // The keyboard is composed of 26 keys.
+                this.keys = this.createKeys();
+                // The "word" object is used to handle a player's input.
+                // Its class "Word" is defined in the next partition. 
+                this.word = word;
+                // Hard code three words on the webpage.
+                // This function is especially designed for this version.
+                // TODO : Delete this function in later versions.
+                this.fillInWords();
+            }
+            // "createSquares" : Create and return a list of squares.
+            createSquares(n_squares)
+            {
+                return Array(n_squares).fill(0).map((_,i)=>new Square('sq'+i, '', 'square'));
+            }
+            // "createKeys" : Create and return a list of keys.
+            createKeys(alphabet='abcdefghijklmnopqrstuvwxyz')
+            {
+                const letters = alphabet.split('');
+                return letters.map((letter,i)=>new Square('key'+i, letter, 'key'));
+            }
+            // "fillInWords" : Hard code three words on the webpage.
+            // This function is especially designed for this version and
+            // will be deleted in later versions.
+            fillInWords()
+            {
+                // e.g. ['m', 'i', 'g', 'h', 't', ... , 'a', 'y']
+                const initletters = this.word.getHardCodedWordsByLetters();
+                // e.g. ['correct', 'wrong', ..., 'wrong', 'correct']
+                const correctness = this.word.getWordsCorrectness();
+                // Step 1. Add letters and correctness to the Gameboard.
+                initletters.forEach((letter, i)=>{
+                    // Add a letter to a square.
+                    this.squares[i].letter = letter;
+                    // And also add its correctness to the attribute "className".
+                    this.squares[i].className += ' ' + correctness[i];
+                });
+                // Step2. Add letters and correctness to the Keyboard.
+                this.addTagToKeyboard(this.word.keyboardTag);
+            }
+            // Tell the keyboard about the correctness of each key.
+            // If the letter is "correct", set its backgroud color as green.
+            // If the letter is "wrong", set its backgroud color as gray.
+            // If the letter is "misplace", set its backgroud color as orange.
+            addTagToKeyboard(keyboardTag)
+            {
+                this.keys.forEach(key=>{
+                    if (key.letter in keyboardTag) {
+                        key.className += ' ' + keyboardTag[key.letter];
+                    }
+                });
+            }
+            // Generate the HTML code of "GameBoard" using JSX.
+            buildGameBoard()
+            {
+                const board = <MyBoard squares={this.squares} boardName="myGameBoard"/>;
+                const main = document.getElementById('main');
+                ReactDOM.createRoot(main).render(board);
+            }
+            // Generate the HTML code of "Keyboard" using JSX.
+            buildKeyboard()
+            {
+                const board = <MyBoard squares={this.keys} boardName="keyboard"/>;
+                const footer = document.getElementById('footer');
+                ReactDOM.createRoot(footer).render(board);
+            }
+        }
+
+        // Part 2.2 Definition of the 'Word' class.
+        // An object of 'Word' can be used to store the correct answer,
+        // user's input, and it also provides a function to verify the
+        // correctness of the input words.
+        class Word {
+            constructor()
+            {
+                // 'answer' stores a 5-letter word, which is the correct
+                // answer of one game.
+                // For example, ['m','o','o','d','y'].
+                this.answer; 
+
+                // For this assignment, we hard code three guesses.
+                // TODO : delete this member variable.
+                this.hardCodedWords = ["might", "flood", "stray"];
+
+                // 'keyboardTag' stores all the letters attempted by the players
+                // and their correctness.
+                // It is presented as an Associative Array so JavaScript knows 
+                // how to render the "keyboard" with colors. 
+                // For example: { "a":"correct", "b":"wrong", "c":"misplace" }.
+                this.keyboardTag = [];
+
+                // Initialize the 'answer' variable at the start of a game.
+                this.setupAnswer();
+            }
+            // "setupAnswer" : 
+            // Fetch a 5-letter word from a website using an API.
+            // For this assignment, we hard code it as "moody".
+            // TODO : fetch a word from a website.
+            setupAnswer()
+            {
+                this.answer = "moody".split("");
+            }
+            // "getHardCodedWordsByLetters" :
+            // return a list of letters.
+            // e.g. ['m', 'i', 'g', 'h', 't', ... , 'a', 'y']
+            getHardCodedWordsByLetters()
+            {
+                return this.hardCodedWords.join('').split('');
+            }
+            // "getWordsCorrectness" :
+            // Return hard coded letters's correctness.
+            // This is implemented by connect 3 lists together.
+            // e.g. ["correct", "wrong", "wrong", ...]
+            getWordsCorrectness()
+            {
+                // step 1. Verify the correctness of each word.
+                // step 2. Connect three correctness list together.
+                var [l1, l2, l3] = this.hardCodedWords.map(w=>this.getWordCorrectness(w));
+                return l1.concat(l2).concat(l3);
+            }
+            // "getWordCorrectness" :
+            // 1. Verify if an word is correct or not.
+            // An Array is returned so JavaScript knows how to render the "Gameboard"
+            // with different colors.
+            // For example: For the input word "title", this func-
+            // tion returns ["correct", "wrong", "wrong", "wrong", "misplace"].
+            //  - "correct" means the letter exists and it's in the correct
+            //    location.
+            //  - "misplace" means the letter exists but it's in the wrong
+            //     location.
+            //  - "wrong" means the letter does not exist.
+            // 2. Update the Associative Array 'keyboard', this array is used to 
+            // help rendering the "keyboard" with colors.
+            getWordCorrectness(source_word)
+            {
+                let result = [];
+                let missed_chars = [];
+                // In the first loop, we simply tag the correct letter
+                // as 'correct', and tag others as 'wrong'.
+                // Besides, wrong letters are pushed into a list for
+                // later verification.
+                this.answer.forEach((target_char,i) => {
+                    const source_char = source_word[i];
+                    if (target_char == source_char) {
+                        result.push('correct'); // 1
+                        this.keyboardTag[source_char] = 'correct';
+                    } else {
+                        result.push('wrong'); // 0
+                        if (!(source_char in this.keyboardTag)) {
+                                this.keyboardTag[source_char] = 'wrong';
+                        } 
+                        missed_chars.push(target_char);
+                    }
+                });
+
+                // In the second loop, we verify if the letter is misplaced.
+                result.forEach((status,i) => {
+                    const source_char = source_word[i];
+                    if (status == 'wrong' && missed_chars.includes(source_char)) {
+                        result[i] = 'misplace';
+                        if (!(source_char in this.keyboardTag) ||
+                                (this.keyboardTag[source_char] == 'wrong')) {
+                                this.keyboardTag[source_char] = 'misplace';
+                        } 
+                        // Delete the first matched letter in "missed_chars".
+                        missed_chars.splice(missed_chars.indexOf(source_char), 1);
+                    }
+                });
+
+                return result;
+            }
+        }
+
+        /************************************************************
+        Part 3. Perform a series of actions after the webpage is loaded.
+        *************************************************************/
+        window.onload= function() {
+            // Create a local object "word".
+            let word = new Word();
+            // Create a global variable "board", 
+            // and send the object "word" into the "board".
+            window.board = new Board(word);
+            
+            // Use JSX to build the gameboard.
+            board.buildGameBoard();
+            // Use JSX to build the keyboard.
+            board.buildKeyboard();
+        } 
+    </script>
+</div>
+</body>
+</html>
