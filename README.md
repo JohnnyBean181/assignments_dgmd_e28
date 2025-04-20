@@ -1,6 +1,11 @@
 This is the repository for DGMD E-28 2025 spring term. 
 
-### Assignment 8 Wordle (Apr. 13 2025):
+### Assignment 9 Wordle Redux Part 2 (Apr. 20 2025):
+Students are required to use JSX to reimplement the Wordle game.
+
+[URL](https://johnnybean181.github.io/assignments_dgmd_e28/hw2/wordle_react_v2.html) for this assignment.
+
+### Assignment 8 Wordle Redux Part 1 (Apr. 13 2025):
 Students are required to use React to create some elements of the Wordle game.
 
 [URL](https://johnnybean181.github.io/assignments_dgmd_e28/hw8/wordle_react.html) for this assignment.
