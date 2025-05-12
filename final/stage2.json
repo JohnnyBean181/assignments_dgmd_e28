@@ -14,13 +14,13 @@
   "employee": [2, 2],
   "crates": [
       {
-          "coords": [4, 8]
+          "coords": [3, 3]
       },
       {
-          "coords": [5, 8]
+          "coords": [3, 4]
       },
       {
-          "coords": [6, 8]
+          "coords": [4, 3]
       }
   ]
 }
