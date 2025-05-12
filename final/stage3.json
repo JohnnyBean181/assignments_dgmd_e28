@@ -13,19 +13,19 @@
   "employee": [3, 2],
   "crates": [
       {
-          "coords": [6, 2]
+          "coords": [3, 3]
       },
       {
-          "coords": [7, 2]
+          "coords": [4, 3]
       },
       {
-          "coords": [7, 3]
+          "coords": [5, 4]
+      },
+      {
+          "coords": [6, 3]
       },
       {
           "coords": [7, 4]
-      },
-      {
-          "coords": [7, 5]
       }
   ]
 }
