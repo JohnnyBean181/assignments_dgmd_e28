@@ -16,19 +16,19 @@
   "employee": [9, 12],
   "crates": [
       {
-          "coords": [7, 3]
+          "coords": [5, 5]
       },
       {
-          "coords": [3, 5]
+          "coords": [5, 7]
       },
       {
           "coords": [6, 6]
       },
       {
-          "coords": [5, 9]
+          "coords": [7, 5]
       },
       {
-          "coords": [9, 7]
+          "coords": [7, 7]
       }
   ]
 }
