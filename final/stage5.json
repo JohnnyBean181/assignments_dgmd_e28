@@ -10,7 +10,7 @@
               "w","p","f","f","f","w","f","w",
               "w","p","f","f","f","f","f","w",
               "w","w","w","w","w","w","w","w"],
-  "employee": [2, 4],
+  "employee": [2, 3],
   "crates": [
       {
           "coords": [3, 4]
